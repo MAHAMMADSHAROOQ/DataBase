@@ -1,0 +1,45 @@
+CREATE PROC [dbo].[prcSaveSalesorder]
+@SalesOrderID bigint,
+@SalesOrderDetailID bigint,
+@CarrierTrackingNumber nvarchar,
+@OrderQty smallint,
+@ProductID bigint,
+@SpecialOfferID bigint,
+@UnitPrice money,
+@UnitPriceDiscount money,
+@LineTotal numeric,
+@rowguid uniqueidentifier,
+@ModifiedDate datetime
+As
+BEGIN
+
+BEGIN TRY
+
+BEGIN TRANSACTION
+
+
+INSERT INTO sales.salesorderdetails
+([rowguid], [ModifiedDate])
+Values(NEWID(), getdate())
+
+Declare @Id bigint
+Select @ID = SCOPE_IDENTITY()
+
+
+
+Insert into Sales.SalesOrderDetail(SalesOrderID, SalesOrderDetailID, CarrierTrackingNumber, OrderQty, ProductID, SpecialOfferID, UnitPrice, UnitPriceDiscount, LineTotal)
+values (@SalesOrderID,@SalesOrderDetailID, @CarrierTrackingNumber, @OrderQty, @ProductID, @SpecialOfferID, @UnitPrice, @UnitPriceDiscount, @LineTotal)
+COMMIT TRANSACTION
+
+
+
+END TRY
+BEGIN CATCH
+if(@@TRANCOUNT>0)
+ROLLBACK TRANSACTION
+
+
+
+EXEC dbo.uspLogError
+END CATCH
+END
